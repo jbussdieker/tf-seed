@@ -51,8 +51,58 @@ resource "aws_instance" "main" {
   instance_type          = "m3.medium"
   subnet_id              = "${aws_subnet.main.id}"
   vpc_security_group_ids = ["${aws_security_group.main.id}"]
+  iam_instance_profile   = "${aws_iam_instance_profile.main.id}"
 
   tags {
     Name = "seed"
   }
+}
+
+resource "aws_iam_instance_profile" "main" {
+  name = "seed"
+
+  roles = [
+    "${aws_iam_role.main.name}",
+  ]
+}
+
+resource "aws_iam_role" "main" {
+  name = "seed"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "main" {
+  name = "seed"
+  role = "${aws_iam_role.main.id}"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "ec2:*"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
 }
