@@ -5,11 +5,17 @@ resource "null_resource" "provision" {
     user        = "${var.user}"
   }
 
+  provisioner "file" {
+    source      = "${path.module}/bootstrap.sh"
+    destination = "/var/tmp/bootstrap.sh"
+  }
+
   provisioner "remote-exec" {
-    inline = "echo OK"
+    inline = "sudo bash /var/tmp/bootstrap.sh"
   }
 
   triggers {
     instance_id = "${aws_instance.main.id}"
+    script_hash = "${sha256(file("${path.module}/bootstrap.sh"))}"
   }
 }
